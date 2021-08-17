@@ -1,0 +1,6 @@
+version: '3.9'
+services:
+    crawler:
+        build: .
+        volumes:
+            - ./txt:/usr/src/app/txt
