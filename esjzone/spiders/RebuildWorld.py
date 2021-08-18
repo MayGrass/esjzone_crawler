@@ -17,8 +17,12 @@ class RebuildworldSpider(scrapy.Spider):
             parse_article_start = False
             for chapter in chapterList:
                 if parse_article_start:
-                    if href := chapter.css("a::attr(href)").get():
-                        yield scrapy.Request(href, callback=self.parse_article)
+                    if a := chapter.css("a"):
+                        yield scrapy.Request(
+                            a.css("::attr(href)").get(),
+                            callback=self.parse_article,
+                            meta={"title": a.css("p *::text").get()},
+                        )
                 # 過標題WEB版後才是要開始抓到內容
                 elif chapter.css("p::text").get() == "WEB版":
                     parse_article_start = True
@@ -28,7 +32,7 @@ class RebuildworldSpider(scrapy.Spider):
     def parse_article(self, response):
         if response.status == 200:
             item = EsjzoneItem()
-            item["title"] = response.css("h2::text").get()  # 標題
+            item["title"] = response.meta["title"]  # 標題
             item["content"] = response.css("div.forum-content p::text").getall()  # 內文
             yield item
         else:
